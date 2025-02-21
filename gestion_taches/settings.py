@@ -72,10 +72,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'gestion_taches.urls'
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/ 'gestion_taches' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -23,3 +23,11 @@ class Utilisateur(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.role})"
+
+class Notification(models.Model):
+    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification pour {self.utilisateur.username} - {self.message[:50]}"

@@ -1,0 +1,254 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Étudiant</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard_etudiant.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h2><i class="fas fa-user-graduate"></i> Tableau de Bord</h2>
+        <ul>
+            <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Accueil</a></li>
+            <li><a href="#projets"><i class="fas fa-folder"></i> Mes Projets</a></li>
+            <li><a href="#taches"><i class="fas fa-tasks"></i> Mes Tâches</a></li>
+            <li><a href="#stats"><i class="fas fa-chart-bar"></i> Statistiques</a></li>
+            <li><a href="#professeurs"><i class="fas fa-chalkboard-teacher"></i> Professeurs</a></li>
+            <li><a href="#notifications"><i class="fas fa-bell"></i> Notifications</a></li>
+            <li><a href="{% url 'profile' %}"><i class="fas fa-user"></i> Mon Profil</a></li>
+        </ul>
+        <ul class="logout">
+            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="dashboard-header">
+            <h1>Bienvenue, {{ user.first_name }} 👋</h1>
+            <p>Voici un aperçu de vos projets et tâches en cours.</p>
+        </header>
+
+        <!-- Section Projets -->
+        <section id="projets">
+            <h2>Gestion des Projets</h2>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Projet</th>
+                        <th>Tâches</th>
+                        <th>Progression</th>
+                        <th>Date limite</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for projet in projets %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'projets:project_detail' projet.id %}">
+                                {{ projet.titre }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge">
+                                {{ projet.taches_terminees }}/{{ projet.total_taches }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: {{ projet.progression }}%"></div>
+                                <span>{{ projet.progression|floatformat }}%</span>
+                            </div>
+                        </td>
+                        <td>{{ projet.date_limite|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="status {{ projet.statut|lower }}">
+                                {{ projet.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'projets:project_update' projet.id %}" class="btn-edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">Aucun projet trouvé</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section Tâches -->
+        <section id="taches">
+            <h2>Mes Tâches Assignées</h2>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Description</th>
+                        <th>Date limite</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tache in taches %}
+                    <tr>
+                        <td>{{ tache.titre }}</td>
+                        <td>{{ tache.description }}</td>
+                        <td>{{ tache.date_limite|date:"d/m/Y" }}</td>
+                        <td class="{{ tache.statut|lower }}">{{ tache.get_statut_display }}</td>
+                        <td>
+                            <select class="status-select" data-task-id="{{ tache.id }}">
+                                <option value="A_FAIRE" {% if tache.statut == "A_FAIRE" %}selected{% endif %}>À faire</option>
+                                <option value="EN_COURS" {% if tache.statut == "EN_COURS" %}selected{% endif %}>En cours</option>
+                                <option value="TERMINE" {% if tache.statut == "TERMINE" %}selected{% endif %}>Terminé</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">Aucune tâche assignée.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section Statistiques -->
+        <section id="stats">
+            <h2>Statistiques de Progression</h2>
+            <div class="stats-container">
+                <div class="chart-container">
+                    <h3>Progression des Tâches</h3>
+                    <canvas id="taskChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Évaluation de Performance</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Professeurs -->
+        <section id="professeurs">
+            <h2>Liste des Professeurs</h2>
+            <ul class="professeur-list">
+                {% for prof in professeurs %}
+                <li>
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    {{ prof.get_full_name }} -
+                    <a href="mailto:{{ prof.email }}">{{ prof.email }}</a>
+                </li>
+                {% empty %}
+                <p>Aucun professeur associé.</p>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- Section Notifications -->
+        <section id="notifications">
+            <h2>Notifications</h2>
+            <ul class="notification-list">
+                {% for notif in notifications %}
+                <li>
+                    {{ notif.message }}
+                    <span class="date">{{ notif.date|date:"d/m/Y H:i" }}</span>
+                </li>
+                {% empty %}
+                <p>Aucune notification récente.</p>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Graphique des tâches
+        const ctx = document.getElementById('taskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Terminé', 'En cours', 'À faire'],
+                datasets: [{
+                    data: [{{ stats.termine }}, {{ stats.encours }}, {{ stats.aFaire }}],
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                }]
+            }
+        });
+
+        // Graphique de performance
+        const ctx2 = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+            labels: ['Progression'],
+            datasets: [{
+                label: 'Taux d\'achèvement',
+                data: [{{ stats.termine }}],
+                backgroundColor: '#007bff',
+                borderColor: '#0056b3',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Progression globale des projets'
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Ajouter la gestion des changements de statut
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const newStatus = this.value;
+
+            fetch(`/api/taches/${taskId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ statut: newStatus })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload(); // Rafraîchir pour voir les changements
+                } else {
+                    alert('Erreur lors de la mise à jour');
+                }
+            });
+        });
+    });
+});
+</script>
+</body>
+</html>

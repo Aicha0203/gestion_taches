@@ -1,0 +1,157 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Professeur</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard_professeur.css' %}">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="dashboard-container">
+    <!-- 🎯 SIDEBAR -->
+    <aside class="sidebar">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Tableau de Bord</h2>
+        <ul>
+            <li><a href="#projets"><i class="fas fa-folder-open"></i> Projets Gérés</a></li>
+            <li><a href="#taches"><i class="fas fa-tasks"></i> Gestion des Tâches</a></li>
+            <li><a href="#evaluations"><i class="fas fa-chart-line"></i> Évaluations & Primes</a></li>
+            <li><a href="#etudiants"><i class="fas fa-users"></i> Étudiants</a></li>
+            <li><a href="#communication"><i class="fas fa-envelope"></i> Communication</a></li>
+            <li><a href="{% url 'profile' %}"><i class="fas fa-user"></i> Mon Profil</a></li>
+        </ul>
+
+        <!-- Déconnexion en bas -->
+        <ul class="logout">
+            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+        </ul>
+    </aside>
+
+    <!-- 🎯 CONTENU PRINCIPAL -->
+    <main class="dashboard-content">
+        <h1>Bienvenue, {{ user.first_name }} 👨‍🏫</h1>
+        <p>Voici un aperçu des projets et tâches sous votre supervision.</p>
+
+        <!-- 📂 Vue d'Ensemble des Projets -->
+        <section id="projets">
+            <h2>Projets Gérés</h2>
+            <div class="project-list">
+                {% for projet in projets %}
+                <div class="project-card">
+                    <h3>{{ projet.nom }}</h3>
+                    <p>{{ projet.description }}</p>
+                    <span class="status {{ projet.status|lower }}">{{ projet.status }}</span>
+                </div>
+                {% empty %}
+                <p>Aucun projet en cours.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- ✅ Gestion des Tâches -->
+        <section id="taches">
+            <h2>Gestion des Tâches</h2>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Assigné à</th>
+                        <th>Date limite</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tache in taches %}
+                    <tr>
+                        <td>{{ tache.titre }}</td>
+                        <td>{{ tache.assigne_a }}</td>
+                        <td>{{ tache.date_limite }}</td>
+                        <td class="{{ tache.status|lower }}">{{ tache.status }}</td>
+                        <td>
+                            <a href="{% url 'modifier_tache' tache.id %}" class="btn-edit">✏️ Modifier</a>
+                            <a href="{% url 'supprimer_tache' tache.id %}" class="btn-delete">🗑 Supprimer</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">Aucune tâche trouvée.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 📊 Évaluation et Primes -->
+        <section id="evaluations">
+            <h2>Évaluations & Primes</h2>
+            <div class="stats-container">
+                <div class="chart-container">
+                    <h3>Progression des Étudiants</h3>
+                    <canvas id="taskChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Primes Attribuées</h3>
+                    <canvas id="primesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🧑‍🎓 Liste des Étudiants -->
+        <section id="etudiants">
+            <h2>Liste des Étudiants</h2>
+            <ul>
+                {% for etudiant in etudiants %}
+                <li>
+                    <i class="fas fa-user-graduate"></i> {{ etudiant.nom }} - <a href="mailto:{{ etudiant.email }}">{{ etudiant.email }}</a>
+                </li>
+                {% empty %}
+                <p>Aucun étudiant associé.</p>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- 📩 Communication -->
+        <section id="communication">
+            <h2>Outils de Communication</h2>
+            <p>Envoyez des messages et des notifications aux étudiants.</p>
+            <a href="{% url 'envoyer_message' %}" class="btn-primary">📩 Envoyer un message</a>
+        </section>
+    </main>
+</div>
+
+<!-- ✅ Graphiques et Statistiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 📊 Graphique des tâches
+        const ctx = document.getElementById('taskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Terminé', 'En cours', 'À faire'],
+                datasets: [{
+                    data: [{{ stats.termine }}, {{ stats.encours }}, {{ stats.aFaire }}],
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                }]
+            }
+        });
+
+        // 📊 Graphique des primes
+        const ctx2 = document.getElementById('primesChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Primes 30K', 'Primes 100K'],
+                datasets: [{
+                    label: 'Nombre d’étudiants',
+                    data: [{{ stats.prime_30k }}, {{ stats.prime_100k }}],
+                    backgroundColor: ['#007bff', '#ff9800']
+                }]
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

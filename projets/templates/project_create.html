@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Créer un Projet{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/projet.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="project-create-container">
+    <div class="project-header">
+        <div class="header-content">
+            <div class="emoji-title-group">
+                <div class="emoji-picker">
+                    <button type="button" id="emoji-btn" aria-label="Choisir un emoji">
+                        <i class="fa-regular fa-face-smile"></i>
+                    </button>
+                    <div id="emoji-dropdown" class="emoji-dropdown">
+                        <div class="emoji-grid">
+                            <span role="button" tabindex="0">🔥</span>
+                            <span role="button" tabindex="0">💡</span>
+                            <span role="button" tabindex="0">🚀</span>
+                            <span role="button" tabindex="0">🎯</span>
+                            <span role="button" tabindex="0">📌</span>
+                            <span role="button" tabindex="0">⚡</span>
+                            <span role="button" tabindex="0">🌟</span>
+                            <span role="button" tabindex="0">🎨</span>
+                            <span role="button" tabindex="0">🏆</span>
+                            <span role="button" tabindex="0">📅</span>
+                        </div>
+                    </div>
+                </div>
+                <h2 id="project-title" contenteditable="true" aria-label="Titre du projet">
+                    <i class="fa-solid fa-pen"></i> Nouveau Projet
+                </h2>
+            </div>
+            <p id="rename-hint">Cliquez pour renommer</p>
+        </div>
+    </div>
+
+    <form method="POST" id="project-form">
+        {% csrf_token %}
+
+        <input type="hidden" name="titre" id="hidden-project-title">
+        <input type="hidden" name="emoji" id="hidden-emoji" value="🚀">
+        <input type="hidden" name="couleur_projet" id="hidden-color">
+
+        <div class="form-grid">
+            <!-- Section Couleur -->
+            <div class="form-section color-section">
+                <h3><i class="fa-solid fa-palette"></i> Thème</h3>
+                <div class="color-picker">
+                    <span class="color-option" data-color="#FFC0CB" style="background: #FFC0CB;" role="button" tabindex="0"></span>
+                    <span class="color-option" data-color="#FFD700" style="background: #FFD700;" role="button" tabindex="0"></span>
+                    <span class="color-option" data-color="#90EE90" style="background: #90EE90;" role="button" tabindex="0"></span>
+                    <span class="color-option" data-color="#ADD8E6" style="background: #ADD8E6;" role="button" tabindex="0"></span>
+                    <span class="color-option" data-color="#D8BFD8" style="background: #D8BFD8;" role="button" tabindex="0"></span>
+                </div>
+            </div>
+
+            <!-- Section Informations -->
+
+            <div class="form-section info-section">
+                <div class="form-row">
+                    <label for="date_limite"> <!-- Changé de 'deadline' à 'date_limite' -->
+                        <i class="fa-regular fa-calendar"></i> Date limite
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="date" id="date_limite" name="date_limite" required> <!-- name="date_limite" -->
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="statut"> <!-- Changé de 'status' à 'statut' -->
+                        <i class="fa-solid fa-list-check"></i> Statut
+                    </label>
+                    <div class="input-wrapper">
+                        <select id="statut" name="statut"> <!-- name="statut" -->
+                            <option value="En cours">En cours</option>
+                            <option value="Terminé">Terminé</option>
+                            <option value="En attente">En attente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="rappel"> <!-- Changé de 'reminder' à 'rappel' -->
+                        <i class="fa-regular fa-bell"></i> Rappel
+                    </label>
+                    <div class="input-wrapper">
+                        <select id="rappel" name="rappel"> <!-- name="rappel" -->
+                            <option value="aucun">Aucun</option>
+                            <option value="matin">Matin (09:00)</option>
+                            <option value="midi">Midi (12:00)</option>
+                            <option value="apresmidi">Après-midi (16:00)</option>
+                            <option value="soir">Soir (19:00)</option>
+                            <option value="custom">Personnalisé...</option>
+                        </select>
+                        <input type="time" id="custom-time" name="heure_rappel" class="hidden"> <!-- Ajout de name="heure_rappel" -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Tâches -->
+            <div class="form-section task-section">
+                <h3><i class="fa-solid fa-list-ul"></i> Tâches</h3>
+                <div id="task-list" class="task-list"></div>
+                <button type="button" id="add-task-btn" class="btn-secondary">
+                    <i class="fa-solid fa-plus"></i> Ajouter une tâche
+                </button>
+            </div>
+
+        </div>
+
+        <button type="submit" class="btn-primary">
+            <i class="fa-solid fa-check"></i> Créer le projet
+        </button>
+    </form>
+</div>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+    // ✅ Gestion du titre éditable
+    const projectTitle = document.getElementById("project-title");
+    const projectContainer = document.querySelector(".project-create-container");
+    const hiddenTitleInput = document.getElementById("hidden-project-title");
+    const hiddenColorInput = document.getElementById("hidden-color");
+    const hiddenEmojiInput = document.getElementById("hidden-emoji");
+
+    projectTitle.addEventListener("focus", function() {
+        this.textContent = this.textContent.replace(/^.*\s/, '');
+    });
+
+    projectTitle.addEventListener("blur", function() {
+        if (this.textContent.trim() === '') {
+            this.textContent = "Nouveau Projet";
+        }
+    });
+
+    // ✅ Stocker le titre du projet dans l'input caché
+    document.getElementById("project-form").addEventListener("submit", function() {
+        hiddenTitleInput.value = projectTitle.textContent;
+    });
+
+    // ✅ Empêcher la bordure par défaut lors de l'édition
+    projectTitle.addEventListener("input", function() {
+        this.style.border = "none";
+        this.style.outline = "none";
+    });
+
+    // ✅ Emoji Picker avec animation
+    const emojiBtn = document.getElementById("emoji-btn");
+    const emojiDropdown = document.getElementById("emoji-dropdown");
+
+    emojiBtn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        emojiDropdown.classList.toggle("show");
+    });
+
+    document.addEventListener("click", function(e) {
+        if (!emojiDropdown.contains(e.target) && !emojiBtn.contains(e.target)) {
+            emojiDropdown.classList.remove("show");
+        }
+    });
+
+    emojiDropdown.addEventListener("click", function(event) {
+        if (event.target.tagName === "SPAN") {
+            emojiBtn.textContent = event.target.textContent;
+            hiddenEmojiInput.value = event.target.textContent;
+        }
+    });
+
+    // ✅ Sélection de couleur avec effet + Changement de couleur du background
+    document.querySelectorAll(".color-option").forEach(color => {
+        color.addEventListener("click", function() {
+            document.querySelectorAll(".color-option").forEach(c => c.classList.remove("selected"));
+            this.classList.add("selected");
+
+            // Changer le background du projet
+            projectContainer.style.backgroundColor = this.dataset.color;
+            hiddenColorInput.value = this.dataset.color;
+        });
+    });
+
+    // ✅ Ajouter une tâche dynamiquement
+    document.getElementById("add-task-btn").addEventListener("click", function() {
+        let taskList = document.getElementById("task-list");
+        let taskDiv = document.createElement("div");
+        taskDiv.classList.add("task");
+       // Lors de l'ajout d'une tâche
+        taskDiv.innerHTML = `
+        <input type="text" name="task_titles[]" placeholder="Titre" required>
+        <input type="date" name="task_dates[]" required>  <!-- ⭐ Champ de date -->
+            <button type="button" class="delete-task">🗑️</button>
+        `;
+        document.getElementById("task-list").appendChild(taskDiv);
+
+        // ✅ Suppression de la tâche
+        taskDiv.querySelector(".delete-task").addEventListener("click", function() {
+            taskDiv.remove();
+        });
+    });
+
+    // ✅ Gestion du rappel personnalisé
+    const reminderSelect = document.getElementById("reminder");
+    const customTimeInput = document.getElementById("custom-time");
+
+    reminderSelect.addEventListener("change", function() {
+        if (this.value === "custom") {
+            customTimeInput.style.display = "block";
+        } else {
+            customTimeInput.style.display = "none";
+        }
+    });
+});
+</script>
+
+
+
+{% endblock %}

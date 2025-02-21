@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Profil | Gestion des Tâches{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/profile.css">
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="avatar-section">
+            <img src="{% if user.avatar %}{{ user.avatar.url }}{% else %}/static/images/default-avatar.jpg{% endif %}"
+                alt="Avatar" class="profile-avatar">
+            <div class="edit-avatar">
+                <a href="{% url 'profile_edit' %}"><i class="fas fa-ellipsis-h"></i></a>
+            </div>
+        </div>
+        <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+        <p class="email">{{ user.email }}</p>
+    </div>
+
+    <div class="profile-stats">
+        <div class="stat-box">
+            <h3>{{ total_projets }} 📂</h3>
+            <p>Projets créés</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ total_taches_accomplies }} ✅</h3>
+            <p>Tâches accomplies</p>
+        </div>
+        <div class="stat-box">
+            <h3>{{ taux_completion }}% 📊</h3>
+            <p>Progrès global</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h3>Derniers Projets</h3>
+        <ul class="project-list">
+            {% for projet in derniers_projets %}
+                <li>
+                    <a href="{% url 'project_detail' projet.id %}">{{ projet.titre }}</a>
+                    <span class="status">{{ projet.get_statut_display }}</span>
+                </li>
+            {% empty %}
+                <p>Aucun projet pour le moment.</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section-card">
+        <h3>Dernières Tâches</h3>
+        <ul class="task-list">
+            {% for tache in dernieres_taches %}
+                <li>
+                    <a href="{% url 'task_detail' tache.id %}">{{ tache.nom }}</a>
+                    <span class="status {% if tache.terminee %}done{% else %}pending{% endif %}">
+                        {% if tache.terminee %}✔ Terminé{% else %}⏳ En cours{% endif %}
+                    </span>
+                </li>
+            {% empty %}
+                <p>Aucune tâche en cours.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

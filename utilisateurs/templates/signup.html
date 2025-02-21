@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription</title>
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="split-layout">
+        <!-- Section Image -->
+        <div class="image-section" style="background-image: url('{% static 'images/signup.jpg' %}')">
+            <div class="image-credit">
+                <span>© Votre Université</span>
+            </div>
+        </div>
+
+        <!-- Section Formulaire -->
+        <div class="form-section">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Rejoindre <span class="brand">TaskMaster</span></h2>
+                    <p>Créez votre compte en 2 minutes</p>
+                </div>
+
+                {% if form.errors %}
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="error-list">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="POST" class="auth-form" autocomplete="off">
+                    {% csrf_token %}
+                    
+                    <div class="form-row">
+                        <div class="input-group floating-label">
+                            {{ form.first_name }}
+                            <label for="{{ form.first_name.id_for_label }}">Prénom</label>
+                        </div>
+                        
+                        <div class="input-group floating-label">
+                            {{ form.last_name }}
+                            <label for="{{ form.last_name.id_for_label }}">Nom</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group floating-label">
+                        {{ form.username }}
+                        <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+                    </div>
+
+                    <div class="input-group floating-label">
+                        {{ form.email }}
+                        <label for="{{ form.email.id_for_label }}">Adresse email</label>
+                    </div>
+
+                    <div class="input-group floating-label">
+                        {{ form.role }}
+                        <label>Rôle</label>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group floating-label">
+                            {{ form.password1 }}
+                            <label for="{{ form.password1.id_for_label }}">Mot de passe</label>
+                        </div>
+                        
+                        <div class="input-group floating-label">
+                            {{ form.password2 }}
+                            <label for="{{ form.password2.id_for_label }}">Confirmation</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-user-plus"></i>
+                        Créer mon compte
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Déjà membre ? <a href="{% url 'login' %}">Connectez-vous ici</a></p>
+                    <a href="#" class="forgot-password">Conditions d'utilisation</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://kit.fontawesome.com/your-kit-code.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!--{% load static %}-->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestion des Tâches{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{% url 'home' %}">
+                <i class="fas fa-tasks"></i> TaskMaster
+            </a>
+        </div>
+        <ul>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Accueil</a></li>
+                <li><a href="{% url 'projets:project_create' %}"><i class="fas fa-folder-plus"></i> Nouveau Projet</a></li>
+                <li><a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profil</a></li>
+
+                {% if user.role == "ETUDIANT" %}
+                    <li><a href="{% url 'dashboard_etudiant' %}"><i class="fas fa-table-columns"></i> Dashboard Étudiant</a></li>
+                {% endif %}
+
+                {% if user.role == "PROFESSEUR" %}
+                    <li><a href="{% url 'dashboard_professeur' %}"><i class="fas fa-table-columns"></i> Dashboard Professeur</a></li>
+                {% endif %}
+
+                <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+            {% else %}
+                <li><a href="{% url 'signup' %}"><i class="fas fa-user-plus"></i> S'inscrire</a></li>
+                <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Se connecter</a></li>
+            {% endif %}
+        </ul>
+
+    </nav>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 GestionTâches | Tous droits réservés</p>
+    </footer>
+
+</body>
+</html>
