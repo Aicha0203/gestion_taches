@@ -1,0 +1,40 @@
+.faq-section {
+  max-width: 800px;
+  margin: 50px auto;
+  text-align: center;
+  padding: 20px;
+}
+
+.faq-list {
+  margin-top: 20px;
+}
+
+.faq-item {
+  background: #222;
+  color: white;
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.faq-question {
+  background: none;
+  border: none;
+  color: #FFD700;
+  font-size: 16px;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.faq-answer {
+  padding: 10px;
+  text-align: left;
+  background: #333;
+  border-radius: 5px;
+  margin-top: 5px;
+}

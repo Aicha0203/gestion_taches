@@ -1,0 +1,55 @@
+:root {
+  --primary-dark: #111;
+  --primary-gold: #FFD700;
+  --secondary-gold: #FFC107;
+  --white: white;
+  --black: black;
+}
+
+.classement-etudiants {
+  background: var(--black);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+  margin-top: 20px;
+}
+
+.classement-etudiants h3 {
+  color: var(--primary-gold);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--primary-dark);
+}
+
+th {
+  background: var(--primary-dark);
+  color: var(--white);
+}
+
+.top3 td {
+  font-weight: bold;
+}
+
+.etudiant-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}

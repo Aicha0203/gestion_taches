@@ -1,0 +1,38 @@
+.evaluation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.evaluation-card {
+  background: var(--primary-dark);
+  color: var(--white);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  width: 350px;
+  text-align: center;
+}
+
+.evaluation-card h2 {
+  color: var(--primary-gold);
+  margin-bottom: 15px;
+}
+
+.evaluation-details p {
+  font-size: 1rem;
+  margin: 10px 0;
+}
+
+.prime {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--secondary-gold);
+  margin-top: 10px;
+}
+
+.prime.active {
+  color: var(--primary-gold);
+}
+

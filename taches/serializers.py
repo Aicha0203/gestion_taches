@@ -1,14 +1,22 @@
 from rest_framework import serializers
-from projets.models import Projet 
+from utilisateurs.models import Utilisateur
+from projets.models import Projet
 from .models import Tache
 
+class UtilisateurSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Utilisateur
+        fields = ["id", "username", "first_name", "last_name"]
+
+class ProjetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Projet
+        fields = ["id", "titre", "description", "statut"]
+
 class TacheSerializer(serializers.ModelSerializer):
-    projet = serializers.PrimaryKeyRelatedField(queryset=Projet.objects.all(), required=True)  # Correction du queryset
-    assigne_a = serializers.ReadOnlyField(source='assigne_a.username')
+    projet = ProjetSerializer(read_only=True)
+    assigne_a = UtilisateurSerializer(read_only=True)
 
     class Meta:
         model = Tache
-        fields = ['id', 'titre', 'description', 'date_limite', 'statut', 'projet', 'assigne_a']
-        extra_kwargs = {
-            'projet': {'required': True},
-        }
+        fields = "__all__"

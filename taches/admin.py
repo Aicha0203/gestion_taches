@@ -3,6 +3,6 @@ from .models import Tache
 
 @admin.register(Tache)
 class TacheAdmin(admin.ModelAdmin):
-    list_display = ('titre', 'description', 'projet', 'statut', 'assigne_a', 'date_limite')  # Ajout de 'description' et 'date_limite'
-    search_fields = ('titre',)
-    list_filter = ('statut', 'date_limite', 'projet')
+    list_display = ("titre", "statut", "date_limite", "projet", "assigne_a")
+    list_filter = ("statut", "date_limite", "projet")
+    search_fields = ("titre", "description", "projet__titre")

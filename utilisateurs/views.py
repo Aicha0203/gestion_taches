@@ -1,140 +1,70 @@
-from django.db.models import Q
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.decorators import login_required
-from rest_framework import viewsets, permissions
-from rest_framework.response import Response
-from rest_framework import status
-
-from projets.models import Projet
-from taches.models import Tache
-from .forms import CustomUserCreationForm
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from rest_framework import viewsets, permissions, status
 from django.contrib.auth import get_user_model
-from django.contrib.auth.backends import ModelBackend
 
-from .models import Notification
+from taches.models import Tache
 from .serializers import UtilisateurSerializer
-from .forms import CustomUserChangeForm
-from django.contrib import messages
-
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes, action
 
 Utilisateur = get_user_model()
 
+def get_csrf_token(request):
+    return JsonResponse({"csrfToken": get_token(request)})
+
 class UtilisateurViewSet(viewsets.ModelViewSet):
-    queryset = Utilisateur.objects.all()
+    queryset = Utilisateur.objects.all().order_by("id")
     serializer_class = UtilisateurSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "id"
 
-    def get_queryset(self):
-        # Seul l'utilisateur peut voir et modifier son propre profil
-        return self.queryset.filter(id=self.request.user.id)
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
-    def update(self, request, *args, **kwargs):
-        """Mise à jour complète du profil (PUT)"""
-        kwargs['partial'] = False
-        return self.partial_update(request, *args, **kwargs)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                "message": "Utilisateur créé avec succès.",
+                "user": UtilisateurSerializer(user).data
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def partial_update(self, request, *args, **kwargs):
-        """Mise à jour partielle du profil (PATCH)"""
-        kwargs['partial'] = True
-        return super().partial_update(request, *args, **kwargs)
+    @action(detail=False, methods=["get", "patch"], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        user = request.user
 
-def signup_view(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+        if request.method == "PATCH":
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
-            login(request, user, backend=user.backend)
+        return Response(self.get_serializer(user).data)
 
-            return redirect('home')
-    else:
-        form = CustomUserCreationForm()
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def reset_password(request):
+    email = request.data.get("email")
+    new_password = request.data.get("new_password")
+    confirm_password = request.data.get("confirm_password")
 
-    return render(request, 'signup.html', {'form': form})
+    if not email or not new_password or not confirm_password:
+        return Response({"error": "Tous les champs sont obligatoires"}, status=status.HTTP_400_BAD_REQUEST)
 
-def login_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
+    if new_password != confirm_password:
+        return Response({"error": "Les mots de passe ne correspondent pas"}, status=status.HTTP_400_BAD_REQUEST)
 
-            return redirect('home')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    users = Utilisateur.objects.filter(email=email)
+    if users.exists():
+        for user in users:
+            user.set_password(new_password)
+            user.save()
+        return Response({"message": "Mot de passe réinitialisé avec succès"}, status=status.HTTP_200_OK)
 
-@login_required
-def profile_view(request):
-    avatar_url = request.user.avatar.url if request.user.avatar else "/static/images/default-avatar.jpg"
-
-    return render(request, 'profile.html', {
-        'user': request.user,
-        'avatar_url': avatar_url,
-    })
-
-@login_required
-def profile_edit(request):
-    if request.method == "POST":
-        form = CustomUserChangeForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Profil mis à jour avec succès !")
-            return redirect('profile')
-    else:
-        form = CustomUserChangeForm(instance=request.user)
-
-    return render(request, 'profile_edit.html', {'form': form})
-
-def logout_view(request):
-    logout(request)
-    return redirect('home')
-
-
-@login_required
-def dashboard_etudiant(request):
-    etudiant = request.user
-
-    # 1. Récupération des projets pertinents
-    projets = Projet.objects.filter(
-        Q(createur=etudiant) | Q(taches__assigne_a=etudiant)
-    ).distinct().prefetch_related('taches')
-
-    # 2. Calcul des statistiques par projet
-    for projet in projets:
-        taches_projet = projet.taches.all()
-        projet.total_taches = taches_projet.count()
-        projet.taches_terminees = taches_projet.filter(statut='TERMINE').count()
-        projet.progression = (
-            (projet.taches_terminees / projet.total_taches * 100)
-            if projet.total_taches > 0
-            else 0
-        )
-
-    # 3. Récupération des éléments complémentaires
-    taches = Tache.objects.filter(assigne_a=etudiant)
-    professeurs = Utilisateur.objects.filter(role='PROFESSEUR')
-    notifications = Notification.objects.filter(utilisateur=etudiant)
-
-    # 4. Calcul des statistiques globales
-    stats = {
-        "termine": taches.filter(statut='TERMINE').count(),
-        "encours": taches.filter(statut='EN_COURS').count(),
-        "aFaire": taches.filter(statut='A_FAIRE').count(),
-    }
-
-    return render(request, 'dashboard_etudiant.html', {
-        'projets': projets,
-        'taches': taches,
-        'professeurs': professeurs,
-        'notifications': notifications,
-        'stats': stats,
-    })
-# ✅ 🔹 **Vue Dashboard Professeur**
-@login_required
-def dashboard_professeur_view(request):
-    return render(request, 'dashboard_professeur.html', {'user': request.user})
+    return Response({"error": "Aucun compte trouvé avec cet email"}, status=status.HTTP_404_NOT_FOUND)
 

@@ -1,15 +1,22 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
 class Utilisateur(AbstractUser):
     ROLE_CHOICES = [
         ('ETUDIANT', 'Étudiant'),
         ('PROFESSEUR', 'Professeur'),
+        ('ADMIN', 'Administrateur'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
-    # Ajoutez ces lignes pour éviter les conflits
+    email = models.EmailField(unique=True)
+
+    recevoir_email = models.BooleanField(default=True)
+    heure_notification = models.TimeField(default="08:00")
+    types_notifications = models.JSONField(default=dict)
+
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='utilisateur_groups',
@@ -23,11 +30,3 @@ class Utilisateur(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.role})"
-
-class Notification(models.Model):
-    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE)
-    message = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Notification pour {self.utilisateur.username} - {self.message[:50]}"

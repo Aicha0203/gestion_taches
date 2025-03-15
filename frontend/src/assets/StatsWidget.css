@@ -1,0 +1,75 @@
+:root {
+  --primary-dark: #111;
+  --primary-gold: #FFD700;
+  --secondary-gold: #FFC107;
+  --white: white;
+  --black: black;
+  --success-green: #4CAF50;
+  --error-red: #F44336;
+}
+
+.stats-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: var(--black);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+  width : 90%;
+}
+
+.stats-cards {
+  display: flex;
+  justify-content: space-around;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 35px;
+  padding: 15px;
+  margin: 15px;
+  background: var(--primary-dark);
+  color: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s;
+  width : 200px;
+
+}
+
+.stat-card:hover {
+  transform: scale(1.05);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  color: var(--secondary-gold);
+}
+
+.stats-chart {
+  background: var(--primary-dark);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stats-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 1.2rem;
+}
+
+.spinner {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

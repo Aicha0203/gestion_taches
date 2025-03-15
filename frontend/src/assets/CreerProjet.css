@@ -1,0 +1,71 @@
+:root {
+  --primary-dark: #111;
+  --primary-gold: #FFD700;
+  --secondary-gold: #FFC107;
+  --white: white;
+  --black: black;
+  --success-green: #4CAF50;
+  --error-red: #F44336;
+}
+
+.creer-projet {
+  background: var(--black);
+  color: var(--white);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
+  max-width: 600px;
+  margin: auto;
+}
+
+.creer-projet h3 {
+  color: var(--primary-gold);
+  text-align: center;
+}
+
+label {
+  display: block;
+  margin: 10px 0 5px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: none;
+}
+
+.tache-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-btn, .submit-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.add-btn {
+  background: var(--primary-gold);
+  color: var(--black);
+}
+
+.submit-btn {
+  background: var(--success-green);
+  color: var(--white);
+}
+
+.delete-btn {
+  background: var(--error-red);
+  color: var(--white);
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}

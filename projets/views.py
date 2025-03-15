@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import PasswordChangeForm
 from rest_framework import viewsets, permissions, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 
 from taches.models import Tache
 from .models import Projet
@@ -12,18 +14,29 @@ from taches.permissions import IsCreatorOrReadOnly
 from .forms import ProjetForm
 from utilisateurs.forms import CustomUserChangeForm
 
-
-# Vue API REST
 class ProjetViewSet(viewsets.ModelViewSet):
     queryset = Projet.objects.all()
     serializer_class = ProjetSerializer
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrReadOnly]
 
     def get_queryset(self):
-        return Projet.objects.filter(createur=self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            return Projet.objects.filter(createur=user).order_by("-date_creation")
+        return Projet.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(createur=self.request.user)
+        projet = serializer.save(createur=self.request.user)
+
+        tasks_data = self.request.data.get("taches", [])
+        for task in tasks_data:
+            Tache.objects.create(
+                projet=projet,
+                titre=task.get("titre"),
+                description=task.get("description", ""),
+                date_limite=task.get("date_limite"),
+                assigne_a=self.request.user
+            )
 
     def update(self, request, *args, **kwargs):
         projet = self.get_object()
@@ -37,8 +50,13 @@ class ProjetViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Suppression non autorisée"}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def get_projets_etudiant(request):
+    projets = Projet.objects.filter(createur=request.user).order_by("-date_creation")
+    serializer = ProjetSerializer(projets, many=True)
+    return Response(serializer.data)
 
-# Vues classiques
 @login_required
 def project_create(request):
     if request.method == "POST":
@@ -48,7 +66,6 @@ def project_create(request):
             projet.createur = request.user
             projet.save()
 
-            # Création des tâches
             task_titles = request.POST.getlist('task_titles[]')
             task_dates = request.POST.getlist('task_dates[]')
 
@@ -61,14 +78,13 @@ def project_create(request):
                         assigne_a=request.user
                     )
 
-            messages.success(request, "Projet créé avec succès ✅")
+            messages.success(request, "Projet créé avec succès")
             return redirect('projets:project_detail', pk=projet.pk)
         else:
-            messages.error(request, f"Erreur lors de la création du projet ❌ {form.errors}")
+            messages.error(request, f"Erreur lors de la création du projet  {form.errors}")
     else:
         form = ProjetForm()
     return render(request, 'project_create.html', {'form': form})
-
 
 @login_required
 def project_detail(request, pk):
@@ -78,7 +94,6 @@ def project_detail(request, pk):
         createur=request.user
     )
     return render(request, 'project_detail.html', {'projet': projet})
-
 
 @login_required
 def project_update(request, pk):
@@ -97,7 +112,6 @@ def project_update(request, pk):
 
     return render(request, 'project_update.html', {'form': form})
 
-
 @login_required
 def project_delete(request, pk):
     projet = get_object_or_404(Projet, pk=pk, createur=request.user)
@@ -109,8 +123,6 @@ def project_delete(request, pk):
 
     return render(request, 'project_delete.html', {'projet': projet})
 
-
-# ✅ Gestion du Profil Utilisateur
 @login_required
 def profile_view(request):
     if request.method == "POST":
@@ -136,7 +148,15 @@ def profile_view(request):
         'password_form': password_form,
     })
 
-@login_required
-def project_detail(request, pk):
-    projet = get_object_or_404(Projet, pk=pk, createur=request.user)
-    return render(request, 'project_detail.html', {'projet': projet})
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_activites_projet(request, projet_id):
+    projet = get_object_or_404(Projet, id=projet_id, createur=request.user)
+
+    activites = [
+        {"message": f"{projet.createur.username} a créé le projet."},
+        {"message": f"Une nouvelle tâche a été ajoutée à {projet.titre}."},
+    ]
+
+    return Response(activites)
+

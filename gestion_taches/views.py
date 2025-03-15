@@ -1,4 +1,4 @@
 from django.shortcuts import render
 
-def home_view(request):
-    return render(request, 'home.html')
+def serve_react(request):
+    return render(request, "index.html")

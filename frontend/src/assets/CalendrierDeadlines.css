@@ -1,0 +1,67 @@
+:root {
+  --primary-dark: #111;
+  --primary-gold: #FFD700;
+  --secondary-gold: #FFC107;
+  --white: white;
+  --black: black;
+  --success-green: #4CAF50;
+  --error-red: #F44336;
+}
+
+.calendrier-deadlines {
+  background: var(--primary-dark);
+  padding: 20px;
+  border-radius: 8px;
+  color: var(--white);
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+}
+
+.calendrier-deadlines h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+  color: var(--primary-gold);
+  margin-bottom: 15px;
+}
+
+.react-calendar {
+  width: 100%;
+  max-width: 400px;
+  background: var(--black);
+  border: 1px solid var(--primary-gold);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.react-calendar__tile {
+  color: var(--white);
+}
+
+.has-deadline {
+  background: var(--success-green) !important;
+  color: var(--black) !important;
+}
+
+.tasks-for-date {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.tasks-for-date h4 {
+  color: var(--secondary-gold);
+}
+
+.tasks-for-date ul {
+  list-style: none;
+  padding: 0;
+}
+
+.tasks-for-date li {
+  background: var(--primary-dark);
+  padding: 5px;
+  border-radius: 5px;
+  margin: 5px 0;
+  color: var(--white);
+}

@@ -1,0 +1,73 @@
+.profil-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #222;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.profil-container h2 {
+  color: #FFD700;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: #FFF;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background: #333;
+  color: white;
+}
+
+.button-container {
+  margin-top: 20px;
+}
+
+.button-container button {
+  width: 100%;
+  padding: 10px;
+  background: #4CAF50;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.button-container button:hover {
+  background: #45a049;
+}
+
+.message {
+  margin-bottom: 15px;
+  color: #FFD700;
+}
+
+.retour {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: #F44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.retour:hover {
+  background: #e53935;
+}
